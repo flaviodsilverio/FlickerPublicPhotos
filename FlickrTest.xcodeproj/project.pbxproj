@@ -12,6 +12,9 @@
 		1B4789B41E6ED1A900031CDB /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1B4789B21E6ED1A900031CDB /* Main.storyboard */; };
 		1B4789B61E6ED1A900031CDB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1B4789B51E6ED1A900031CDB /* Assets.xcassets */; };
 		1B4789B91E6ED1AA00031CDB /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1B4789B71E6ED1AA00031CDB /* LaunchScreen.storyboard */; };
+		1BA3150C1E6F385B0059A2F5 /* DictionaryExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BA3150B1E6F385B0059A2F5 /* DictionaryExtensions.swift */; };
+		1BA3150F1E6F47900059A2F5 /* RequestManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BA3150E1E6F47900059A2F5 /* RequestManager.swift */; };
+		1BA315121E6F47A80059A2F5 /* RequestClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BA315111E6F47A80059A2F5 /* RequestClient.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -22,6 +25,9 @@
 		1B4789B51E6ED1A900031CDB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		1B4789B81E6ED1AA00031CDB /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		1B4789BA1E6ED1AA00031CDB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		1BA3150B1E6F385B0059A2F5 /* DictionaryExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DictionaryExtensions.swift; sourceTree = "<group>"; };
+		1BA3150E1E6F47900059A2F5 /* RequestManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RequestManager.swift; sourceTree = "<group>"; };
+		1BA315111E6F47A80059A2F5 /* RequestClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RequestClient.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -54,6 +60,8 @@
 		1B4789AD1E6ED1A900031CDB /* FlickrTest */ = {
 			isa = PBXGroup;
 			children = (
+				1BA3150D1E6F47800059A2F5 /* API */,
+				1BA3150A1E6F38420059A2F5 /* Extensions */,
 				1B4789AE1E6ED1A900031CDB /* AppDelegate.swift */,
 				1B4789B01E6ED1A900031CDB /* ViewController.swift */,
 				1B4789B21E6ED1A900031CDB /* Main.storyboard */,
@@ -62,6 +70,23 @@
 				1B4789BA1E6ED1AA00031CDB /* Info.plist */,
 			);
 			path = FlickrTest;
+			sourceTree = "<group>";
+		};
+		1BA3150A1E6F38420059A2F5 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				1BA3150B1E6F385B0059A2F5 /* DictionaryExtensions.swift */,
+			);
+			name = Extensions;
+			sourceTree = "<group>";
+		};
+		1BA3150D1E6F47800059A2F5 /* API */ = {
+			isa = PBXGroup;
+			children = (
+				1BA3150E1E6F47900059A2F5 /* RequestManager.swift */,
+				1BA315111E6F47A80059A2F5 /* RequestClient.swift */,
+			);
+			name = API;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -96,6 +121,7 @@
 				TargetAttributes = {
 					1B4789AA1E6ED1A900031CDB = {
 						CreatedOnToolsVersion = 8.2.1;
+						DevelopmentTeam = 4TU97ESE9C;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -136,8 +162,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1BA3150F1E6F47900059A2F5 /* RequestManager.swift in Sources */,
 				1B4789B11E6ED1A900031CDB /* ViewController.swift in Sources */,
 				1B4789AF1E6ED1A900031CDB /* AppDelegate.swift in Sources */,
+				1BA315121E6F47A80059A2F5 /* RequestClient.swift in Sources */,
+				1BA3150C1E6F385B0059A2F5 /* DictionaryExtensions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -260,7 +289,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = 4TU97ESE9C;
 				INFOPLIST_FILE = FlickrTest/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = app.FlickrTest;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -272,7 +303,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = 4TU97ESE9C;
 				INFOPLIST_FILE = FlickrTest/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = app.FlickrTest;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -299,6 +332,7 @@
 				1B4789BF1E6ED1AA00031CDB /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
