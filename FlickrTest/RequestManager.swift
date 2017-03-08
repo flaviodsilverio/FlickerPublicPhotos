@@ -25,7 +25,6 @@ class RequestManager {
                 do{
                     let json = try JSONSerialization.jsonObject(with: data!, options: .allowFragments)
                     completion(true, json)
-                    return
                     
                 } catch {
                     completion(true, data)

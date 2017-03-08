@@ -8,11 +8,14 @@
 
 import UIKit
 
-class ViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, RequestClientDelegate {
+class ViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, RequestClientDelegate {
 
     var queue = OperationQueue()
     var items = [ImageHelper]()
-    var requestClient = RequestClient()
+    
+    let requestClient = RequestClient.sharedInstance
+    
+    var user : User = User()
     
     @IBOutlet var collectionView: UICollectionView!
     
@@ -20,20 +23,13 @@ class ViewController: UIViewController, UICollectionViewDataSource, UICollection
         super.viewDidLoad()
         
         requestClient.delegate = self
+        requestClient.user = user
         requestClient.load(userWithName: "franckinjapan")
-        
-        // Do any additional setup after loading the view, typically from a nib.
-        
-//        load(userWithName: "franckinjapan")
-    }
 
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
     }
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return items.count
+        return user.photos.count
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
@@ -45,41 +41,25 @@ class ViewController: UIViewController, UICollectionViewDataSource, UICollection
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath)
-    
-        let imageView = cell.viewWithTag(10001) as! UIImageView
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath) as! PhotoCell
         
-        if items[indexPath.row].image == nil {
-            
-            imageView.image = UIImage(named:"placeholder")
-            cell.tag = indexPath.row
-            
-            requestClient.load(imageDetailsForID: items[indexPath.row].imageID, completion: {
-                [weak self] (image : UIImage?, imageID : String)  in
-                
-                if indexPath.row == cell.tag {
-                    
-                    DispatchQueue.main.sync {
-                        imageView.image = image
-                    }
-                    
-                }
-                
-                self?.items[indexPath.row].image = image
-            })
-            
-        } else {
-            imageView.image = items[indexPath.row].image
-        }
-        
-        print("cell")
-        
+        cell.imageView.setImage(forItem: user.photos[indexPath.row], inPosition: indexPath.row)
+  
         return cell
     }
     
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        self.performSegue(withIdentifier: "showPhotoDetails", sender: collectionView.cellForItem(at: indexPath))
+    }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+
+        let destination = segue.destination as! PhotoDetailsVC
+        destination.photo = user.photos[(collectionView.indexPath(for: sender as! UICollectionViewCell)?.row)!]
+    
+    }
+    
     func loaded(userPhotos photos: [ImageHelper]) {
-        
-        self.items = photos
         
         DispatchQueue.main.sync {
             self.collectionView.reloadData()
@@ -93,11 +73,6 @@ class ImageHelper{
     var imageID : String = ""
     var image : UIImage?
 }
-
-
-/*
- https://api.flickr.com/services/rest/?method=flickr.photos.getSizes&api_key=956355626648d3053ddfec23e6b26d7f&photo_id=32440792383&format=json&nojsoncallback=1
- */
 
 
 

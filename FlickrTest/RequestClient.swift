@@ -13,13 +13,16 @@ protocol RequestClientDelegate : class{
     func loaded(userPhotos photos: [ImageHelper])
 }
 
-class RequestClient {
+final class RequestClient {
 
     let requestManager = RequestManager()
+    let requestCreator = RequestCreator()
     
     weak var delegate : RequestClientDelegate?
     
-    let requestCreator = RequestCreator()
+    static let sharedInstance = RequestClient()
+    
+    unowned var user = User()
     
     func load(userWithName username: String){
         
@@ -28,28 +31,32 @@ class RequestClient {
             
             if success {
                 guard let userData = data as? [String:AnyObject] else { return }
-                self?.load(userDetailsWithUserID: userData.value(for: "user", "id") as! String)
+                
+                self?.user.userName = username
+                self?.user.userID = userData.value(for: "user", "id") as! String
+                
+                self?.load(userDetailsWithUserID: (self?.user.userID)!)
             }
         }
         
     }
     
     func load(userDetailsWithUserID userID: String){
-        requestManager.perform(requestWithURLString: requestCreator.getURLString(forRequestType: .userDetailsFromUserID, withID: userID)) { [weak self] (success, data) in
+        
+        requestManager.perform(requestWithURLString: "https://api.flickr.com/services/rest/?method=flickr.people.getPublicPhotos&api_key=519bef96f3f1304e71258378481aea09&user_id=142226915%40N06&per_page=500&page=2&format=json&nojsoncallback=1") { [weak self] (success, data) in
             
             if success {
                 guard let userData = data as? [String:AnyObject] else { return }
                 
-                var photosArray = [ImageHelper]()
+                self?.user.totalPhotos = Int(userData.value(for: "photos","total") as! String)!
                 
-                for photo in userData.value(for: "photos", "photo") as! [[String:AnyObject]] {
-                    let helper = ImageHelper()
-                    helper.imageID = photo["id"] as! String
-                    photosArray.append(helper)
+                let allUserPhotos = userData.value(for: "photos", "photo") as! [[String:AnyObject]]
+                
+                for photo in allUserPhotos {
+                    self?.user.photos.append(Photo(withID: photo["id"] as! String, andTitle: photo["title"] as! String))
                 }
                 
-                self?.delegate?.loaded(
-                    userPhotos: photosArray)
+                self?.delegate?.loaded(userPhotos: [])
             }
             
         }
@@ -73,7 +80,7 @@ class RequestClient {
 
 }
 
-class RequestCreator {
+final class RequestCreator {
 
     enum RequestType {
         case photoDetails
@@ -84,7 +91,7 @@ class RequestCreator {
     var requestType = RequestType.userIDFromName
     
     let baseHead = "https://api.flickr.com/services/rest/?method="
-    let apiKey = "&api_key=956355626648d3053ddfec23e6b26d7f&"
+    let apiKey = "&api_key=519bef96f3f1304e71258378481aea09&"
     let baseTail = "&format=json&nojsoncallback=1"
     
     func getURLString(forRequestType requestType: RequestType, withID id: String) -> String {
@@ -107,6 +114,7 @@ class RequestCreator {
         }
         
         return baseHead + method + apiKey + idType + id + baseTail
+        
     }
     
     
