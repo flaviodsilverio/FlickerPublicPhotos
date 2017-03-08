@@ -10,7 +10,8 @@ import Foundation
 import UIKit
 
 protocol RequestClientDelegate : class{
-    func loaded(userPhotos photos: [ImageHelper])
+    func loaded()
+    func failed(withMessage message: String)
 }
 
 final class RequestClient {
@@ -32,10 +33,15 @@ final class RequestClient {
             if success {
                 guard let userData = data as? [String:AnyObject] else { return }
                 
-                self?.user.userName = username
-                self?.user.userID = userData.value(for: "user", "id") as! String
-                
-                self?.load(userDetailsWithUserID: (self?.user.userID)!)
+                if userData["stat"] as? String != "fail" {
+                    self?.user.userName = username
+                    self?.user.userID = userData.value(for: "user", "id") as! String
+                    
+                    self?.load(userDetailsWithUserID: (self?.user.userID)!)
+                    
+                } else {
+                    self?.failed(withMessage: userData["message"] as! String)
+                }
             }
         }
         
@@ -43,22 +49,38 @@ final class RequestClient {
     
     func load(userDetailsWithUserID userID: String){
         
-        requestManager.perform(requestWithURLString: "https://api.flickr.com/services/rest/?method=flickr.people.getPublicPhotos&api_key=519bef96f3f1304e71258378481aea09&user_id=142226915%40N06&per_page=500&page=2&format=json&nojsoncallback=1") { [weak self] (success, data) in
+        requestManager.perform(requestWithURLString: requestCreator.getURLString(forRequestType: .userDetailsFromUserID, withID: userID)) { [weak self] (success, data) in
             
             if success {
+                
                 guard let userData = data as? [String:AnyObject] else { return }
                 
-                self?.user.totalPhotos = Int(userData.value(for: "photos","total") as! String)!
-                
-                let allUserPhotos = userData.value(for: "photos", "photo") as! [[String:AnyObject]]
-                
-                for photo in allUserPhotos {
-                    self?.user.photos.append(Photo(withID: photo["id"] as! String, andTitle: photo["title"] as! String))
+                if userData["stat"] as? String != "fail" {
+                    
+                    self?.user.totalPhotos = Int(userData.value(for: "photos","total") as! String)!
+                    
+                    let allUserPhotos = userData.value(for: "photos", "photo") as! [[String:AnyObject]]
+                    
+                    if allUserPhotos.count == 0 {
+                        self?.failed(withMessage: "No Public Photos")
+                    }
+                    
+                    for photo in allUserPhotos {
+                        
+                        let photo = Photo(withID: photo["id"] as! String, andTitle: photo["title"] as! String)
+                        photo.isFriend = false
+                        photo.isFamily = false
+                        
+                        self?.user.photos.append(photo)
+                    }
+                    
+                    self?.delegate?.loaded()
+                    
+                } else {
+                    
+                    self?.failed(withMessage: userData["message"] as! String)
                 }
-                
-                self?.delegate?.loaded(userPhotos: [])
             }
-            
         }
     }
     
@@ -69,15 +91,19 @@ final class RequestClient {
             guard let imageURL = ((((data as! [String:AnyObject]).value(for: "sizes", "size") as? [[String:Any]])?[1])! as [String:Any])["source"] as? String else { return }
             
             self?.requestManager.perform(requestWithURLString: imageURL, completionHandler: { (success, data) in
-                
-                let image = UIImage(data: data! as! Data)
-                completion(image, imageID)
+
+                if data is UIImage {
+                    completion(data as? UIImage, imageID)
+                }
                 
             })
             
         }
     }
 
+    func failed(withMessage message: String) {
+        self.delegate?.failed(withMessage: message)
+    }
 }
 
 final class RequestCreator {

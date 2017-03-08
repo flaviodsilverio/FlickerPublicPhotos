@@ -13,7 +13,9 @@ class PhotoDetailsVC: UITableViewController {
     @IBOutlet var photoThumbnail: UIImageView!
     
     @IBOutlet var nameLabel: UILabel!
+    @IBOutlet weak var isFamilyLabel: UILabel!
     
+    @IBOutlet weak var isFriendLabel: UILabel!
     var photo : Photo!
     
     override func viewDidLoad() {
@@ -22,6 +24,8 @@ class PhotoDetailsVC: UITableViewController {
         photoThumbnail.image = photo.images.thumbnail
         
         nameLabel.text = photo.title
+        isFamilyLabel.text = "\(photo.isFamily)"
+        isFriendLabel.text =  "\(photo.isFriend)"
         
         // Do any additional setup after loading the view.
     }

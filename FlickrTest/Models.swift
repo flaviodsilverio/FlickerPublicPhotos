@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  Models.swift
 //  FlickrTest
 //
 //  Created by Flávio Silvério on 08/03/17.
@@ -15,13 +15,14 @@ class User : AnyObject{
     var totalPhotos : Int = 0
     
     var photos = [Photo]()
-    
 }
 
 class Photo : AnyObject{
 
     var title : String = ""
     var photoID : String = ""
+    var isFriend : Bool = false
+    var isFamily : Bool = false
     
     var images = Images()
     

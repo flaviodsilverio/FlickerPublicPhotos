@@ -1,5 +1,5 @@
 //
-//  ViewController.swift
+//  PhotoListVC.swift
 //  FlickrTest
 //
 //  Created by Flávio Silvério on 07/03/17.
@@ -8,14 +8,13 @@
 
 import UIKit
 
-class ViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, RequestClientDelegate {
-
-    var queue = OperationQueue()
-    var items = [ImageHelper]()
+class PhotoListVC: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, RequestClientDelegate {
     
     let requestClient = RequestClient.sharedInstance
     
     var user : User = User()
+    
+    @IBOutlet weak var userNameTextField: UITextField!
     
     @IBOutlet var collectionView: UICollectionView!
     
@@ -24,9 +23,12 @@ class ViewController: UIViewController, UICollectionViewDataSource, UICollection
         
         requestClient.delegate = self
         requestClient.user = user
-        requestClient.load(userWithName: "franckinjapan")
+        
+        collectionView.show(noDataViewWithText: "Search for a username")
 
     }
+    
+    //MARK: Collection Data Source and delegate
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return user.photos.count
@@ -52,26 +54,64 @@ class ViewController: UIViewController, UICollectionViewDataSource, UICollection
         self.performSegue(withIdentifier: "showPhotoDetails", sender: collectionView.cellForItem(at: indexPath))
     }
     
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-
-        let destination = segue.destination as! PhotoDetailsVC
-        destination.photo = user.photos[(collectionView.indexPath(for: sender as! UICollectionViewCell)?.row)!]
     
-    }
+    //MARK: Request Delegate Methods
     
-    func loaded(userPhotos photos: [ImageHelper]) {
+    func loaded() {
         
         DispatchQueue.main.sync {
-            self.collectionView.reloadData()
+            
+            self.view.set(isLoading: false)
+            
+            if user.photos.count > 0 {
+                collectionView.hideNoDataView()
+                self.collectionView.reloadData()
+            } else {
+                collectionView.show(noDataViewWithText: "User has no Public Photos")
+            }
+            
         }
-
+        
     }
+    
+    func failed(withMessage message: String){
+        
+        DispatchQueue.main.sync {
+            userNameTextField.resignFirstResponder()
+            self.view.set(isLoading: false)
+            collectionView.reloadData()
+            collectionView.show(noDataViewWithText: message)
+        }
+    }
+    
+    //MARK: Navigation
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        
+        let destination = segue.destination as! PhotoDetailsVC
+        destination.photo = user.photos[(collectionView.indexPath(for: sender as! UICollectionViewCell)?.row)!]
+        
+    }
+    
+    //MARK: Actions
+    
+    @IBAction func searchButtonTapped(_ sender: Any) {
+        
+        user.photos = [Photo]()
 
-}
+        if (userNameTextField.text?.characters.count)! > 0 {
+            self.view.set(isLoading: true)
+            let text = userNameTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: " ", with: "+")
+            userNameTextField.resignFirstResponder()
 
-class ImageHelper{
-    var imageID : String = ""
-    var image : UIImage?
+            requestClient.load(userWithName: text!)
+        } else {
+            collectionView.show(noDataViewWithText: "Invalid Username Format")
+        }
+    }
+    
+
+
 }
 
 

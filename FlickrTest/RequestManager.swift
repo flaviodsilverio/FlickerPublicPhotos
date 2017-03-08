@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import UIKit
 
 class RequestManager {
     
@@ -22,18 +23,23 @@ class RequestManager {
             
             if httpResponse.statusCode == 200 {
                 
-                do{
-                    let json = try JSONSerialization.jsonObject(with: data!, options: .allowFragments)
-                    completion(true, json)
+                if let image = UIImage(data: data!) {
+                    completion(true, image)
                     
-                } catch {
-                    completion(true, data)
-                }
+                } else {
+                    
+                    do{
+                        let json = try JSONSerialization.jsonObject(with: data!, options: .allowFragments)
+                        completion(true, json)
+                        
+                    } catch {
+                        completion(false, ["message":"Error Parsing JSON"])
+                    }}
                 
             } else {
-                
+                completion(false, ["message":"Bad Request"])
+
             }
-            
             }.resume()
     }
     
