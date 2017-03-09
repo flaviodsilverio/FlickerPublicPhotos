@@ -8,25 +8,23 @@
 
 import UIKit
 
-class PhotoDetailsVC: UITableViewController {
+class PhotoDetailsVC: UITableViewController, RequestClientDelegate {
 
-    @IBOutlet var photoThumbnail: UIImageView!
+    let requestClient = RequestClient.sharedInstance
     
-    @IBOutlet var nameLabel: UILabel!
-    @IBOutlet weak var isFamilyLabel: UILabel!
-    
-    @IBOutlet weak var isFriendLabel: UILabel!
-    var photo : Photo!
+    var photo : Photo! {
+        didSet{
+            requestClient.delegate = self
+            self.view.set(isLoading: true)
+            requestClient.load(photoDetailsForPhoto: photo)
+        }
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        photoThumbnail.image = photo.images.thumbnail
-        
-        nameLabel.text = photo.title
-        isFamilyLabel.text = "\(photo.isFamily)"
-        isFriendLabel.text =  "\(photo.isFriend)"
-        
+        self.tableView.estimatedRowHeight = 80.0
+        self.tableView.rowHeight = UITableViewAutomaticDimension
         // Do any additional setup after loading the view.
     }
 
@@ -35,12 +33,23 @@ class PhotoDetailsVC: UITableViewController {
         // Dispose of any resources that can be recreated.
     }
     
-    
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        
-        if indexPath.row == 2 {
-        
+        if indexPath.section == 1 {
+            self.performSegue(withIdentifier: "showOriginalPhoto", sender: self)
         }
     }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        let destination = segue.destination as! OriginalPhotoVC
+        destination.originalPhotoURLString = "https://www.flickr.com/photos/27543985@N00/718871/"
+        
+    }
 
+    func loaded(){
+        self.view.set(isLoading: false)
+    }
+    
+    func failed(withMessage message: String){
+        self.view.set(isLoading: false)
+    }
 }

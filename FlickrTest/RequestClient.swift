@@ -68,8 +68,6 @@ final class RequestClient {
                     for photo in allUserPhotos {
                         
                         let photo = Photo(withID: photo["id"] as! String, andTitle: photo["title"] as! String)
-                        photo.isFriend = false
-                        photo.isFamily = false
                         
                         self?.user.photos.append(photo)
                     }
@@ -84,9 +82,21 @@ final class RequestClient {
         }
     }
     
-    func load(imageDetailsForID imageID: String, completion: @escaping ((UIImage?, String) -> ())) {
+    //v2
+    func load(photoDetailsForPhoto photo: Photo) {
         
-        requestManager.perform(requestWithURLString: requestCreator.getURLString(forRequestType: .photoDetails, withID: imageID)) { [weak self] (success, data) in
+        requestManager.perform(requestWithURLString: requestCreator.getURLString(forRequestType: .photoDetails, withID: photo.photoID)) { [weak self] (success, data) in
+            
+            photo.fill(withDetails: data as! [String : AnyObject])
+            self?.delegate?.loaded()
+            
+        }
+    }
+    
+    //v1
+    func load(imageSizesForID imageID: String, completion: @escaping ((UIImage?, String) -> ())) {
+        
+        requestManager.perform(requestWithURLString: requestCreator.getURLString(forRequestType: .photoSizes, withID: imageID)) { [weak self] (success, data) in
             
             guard let imageURL = ((((data as! [String:AnyObject]).value(for: "sizes", "size") as? [[String:Any]])?[1])! as [String:Any])["source"] as? String else { return }
             
@@ -112,12 +122,13 @@ final class RequestCreator {
         case photoDetails
         case userIDFromName
         case userDetailsFromUserID
+        case photoSizes
     }
     
     var requestType = RequestType.userIDFromName
     
     let baseHead = "https://api.flickr.com/services/rest/?method="
-    let apiKey = "&api_key=519bef96f3f1304e71258378481aea09&"
+    let apiKey = "&api_key=9f4a74831f5da6d71ed16cb11d955600&"
     let baseTail = "&format=json&nojsoncallback=1"
     
     func getURLString(forRequestType requestType: RequestType, withID id: String) -> String {
@@ -126,8 +137,12 @@ final class RequestCreator {
         var idType = ""
         
         switch requestType {
-        case .photoDetails:
+        case .photoSizes:
             method = "flickr.photos.getSizes"
+            idType = "photo_id="
+            break
+        case .photoDetails:
+            method = "flickr.photos.getInfo"
             idType = "photo_id="
             break
         case .userDetailsFromUserID:

@@ -34,16 +34,29 @@ extension UIView {
     
     func show(noDataViewWithText text: String) {
         
-        let label = self.viewWithTag(-102) as? UILabel ?? UILabel(frame: CGRect(x:0,y:0,width:self.frame.width,height: 50))
+        let label = self.viewWithTag(-102) as? UILabel ?? UILabel()
         label.tag = -102
-        label.font = UIFont.systemFont(ofSize: 12)
+        label.font = UIFont.systemFont(ofSize: 13)
         label.text = text
+        label.textAlignment = .center
         self.addSubview(label)
     
     }
     
     func hideNoDataView(){
         self.viewWithTag(-102)?.removeFromSuperview()
+    }
+    
+    func bindFrameToSuperviewBounds(){
+        
+        guard let superview = self.superview else {
+            print("Error! `superview` was nil – call `addSubview(view: UIView)` before calling `bindFrameToSuperviewBounds()` to fix this.")
+            return
+        }
+        
+        self.translatesAutoresizingMaskIntoConstraints = false
+        superview.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-0-[subview]-0-|", options: .directionLeadingToTrailing, metrics: nil, views: ["subview": self]))
+        superview.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-0-[subview]-0-|", options: .directionLeadingToTrailing, metrics: nil, views: ["subview": self]))
     }
 
 }

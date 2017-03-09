@@ -22,7 +22,7 @@ extension UIImageView {
             
             }
             
-            RequestClient.sharedInstance.load(imageDetailsForID: item.photoID, completion: {
+            RequestClient.sharedInstance.load(imageSizesForID: item.photoID, completion: {
                 [weak self] (image : UIImage?, imageID : String)  in
                 
                 if position == self?.tag {
