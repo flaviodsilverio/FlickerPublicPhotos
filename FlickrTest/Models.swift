@@ -8,7 +8,7 @@
 
 import UIKit
 
-class User : AnyObject{
+final class User : AnyObject{
     
     var userID : String = ""
     var userName : String = ""
@@ -17,7 +17,7 @@ class User : AnyObject{
     var photos = [Photo]()
 }
 
-class Photo : AnyObject{
+final class Photo : AnyObject{
 
     var title : String = ""
     var photoID : String = ""
@@ -54,7 +54,7 @@ class Photo : AnyObject{
     
 }
 
-class Images : AnyObject {
+final class Images : AnyObject {
 
     var thumbnail : UIImage?
     var original : UIImage?

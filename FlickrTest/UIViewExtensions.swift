@@ -46,7 +46,7 @@ extension UIView {
     func hideNoDataView(){
         self.viewWithTag(-102)?.removeFromSuperview()
     }
-    
+
     func bindFrameToSuperviewBounds(){
         
         guard let superview = self.superview else {

@@ -23,11 +23,4 @@ class OriginalPhotoVC: UIViewController, UIWebViewDelegate {
         let request = URLRequest(url: originalPhotoURL, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData, timeoutInterval: 30)
         webView.loadRequest(request)
     }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
-    
-
 }

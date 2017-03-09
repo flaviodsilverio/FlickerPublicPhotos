@@ -8,24 +8,20 @@
 
 import UIKit
 
-class PhotoListVC: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, RequestClientDelegate {
+class PhotoListVC: UIViewController, UISearchBarDelegate, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
     
     let requestClient = RequestClient.sharedInstance
-    
     var user : User = User()
     
     @IBOutlet weak var userNameTextField: UITextField!
-    
     @IBOutlet var collectionView: UICollectionView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        requestClient.delegate = self
         requestClient.user = user
-        
+    
         collectionView.show(noDataViewWithText: "Search for a username")
-
     }
     
     //MARK: Collection Data Source and delegate
@@ -56,62 +52,56 @@ class PhotoListVC: UIViewController, UICollectionViewDataSource, UICollectionVie
     
     
     //MARK: Request Delegate Methods
-    
     func loaded() {
         
         DispatchQueue.main.sync {
-            
             self.view.set(isLoading: false)
-            
-            if user.photos.count > 0 {
-                collectionView.hideNoDataView()
-                self.collectionView.reloadData()
-            } else {
-                collectionView.show(noDataViewWithText: "User has no Public Photos")
-            }
-            
+            self.collectionView.reloadData()
         }
-        
     }
     
-    func failed(withMessage message: String){
+    func failed(withMessage message: String?){
         
         DispatchQueue.main.sync {
-            userNameTextField.resignFirstResponder()
+            
             self.view.set(isLoading: false)
             collectionView.reloadData()
-            collectionView.show(noDataViewWithText: message)
+            
+            let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
+            let action = UIAlertAction(title: "OK", style: .default, handler: nil)
+            alert.addAction(action)
+            
+            self.present(alert, animated: true, completion: nil)
         }
     }
     
     //MARK: Navigation
-    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         
         let destination = segue.destination as! PhotoDetailsVC
         destination.photo = user.photos[(collectionView.indexPath(for: sender as! UICollectionViewCell)?.row)!]
-        
     }
     
     //MARK: Actions
-    
-    @IBAction func searchButtonTapped(_ sender: Any) {
-        
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         user.photos = [Photo]()
-
-        if (userNameTextField.text?.characters.count)! > 0 {
+        
+        if (searchBar.text?.characters.count)! > 0 {
             self.view.set(isLoading: true)
-            let text = userNameTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: " ", with: "+")
-            userNameTextField.resignFirstResponder()
-
-            requestClient.load(userWithName: text!)
+            let text = searchBar.text?.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: " ", with: "+")
+            searchBar.resignFirstResponder()
+            
+            requestClient.load(userWithName: text!, completion: { [weak self] (success, errorMessage) in
+                if success {
+                    self?.loaded()
+                } else {
+                    self?.failed(withMessage: errorMessage)
+                }
+            })
         } else {
             collectionView.show(noDataViewWithText: "Invalid Username Format")
         }
     }
-    
-
-
 }
 
 

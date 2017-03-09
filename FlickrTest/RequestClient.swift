@@ -9,51 +9,49 @@
 import Foundation
 import UIKit
 
-protocol RequestClientDelegate : class{
-    func loaded()
-    func failed(withMessage message: String)
-}
-
 final class RequestClient {
 
     let requestManager = RequestManager()
     let requestCreator = RequestCreator()
     
-    weak var delegate : RequestClientDelegate?
-    
     static let sharedInstance = RequestClient()
+    
+    var queue = OperationQueue()
     
     unowned var user = User()
     
-    func load(userWithName username: String){
+    func load(userWithName username: String,
+              completion: @escaping ((_ success: Bool, _ message: String?)->())){
         
-        requestManager.perform(requestWithURLString: requestCreator.getURLString(forRequestType: .userIDFromName, withID: username))
-        { [weak self] (success, data) in
-            
-            if success {
-                guard let userData = data as? [String:AnyObject] else { return }
+            requestManager.perform(requestWithURLString: requestCreator.getURLString(forRequestType: .userIDFromName, withID: username))
+            { [weak self] (success, data) in
                 
-                if userData["stat"] as? String != "fail" {
-                    self?.user.userName = username
-                    self?.user.userID = userData.value(for: "user", "id") as! String
+                if success {
+                    guard let userData = data as? [String:AnyObject] else { completion(false, "something went wrong"); return  }
                     
-                    self?.load(userDetailsWithUserID: (self?.user.userID)!)
-                    
+                    if userData["stat"] as? String != "fail" {
+                        self?.user.userName = username
+                        self?.user.userID = userData.value(for: "user", "id") as! String
+                        
+                        self?.load(userDetailsWithUserID: (self?.user.userID)!, completion: completion)
+                        
+                    } else {
+                        completion(false, userData["message"] as? String)
+                    }
                 } else {
-                    self?.failed(withMessage: userData["message"] as! String)
+                    completion(false, data as? String)
                 }
             }
-        }
-        
     }
     
-    func load(userDetailsWithUserID userID: String){
+    func load(userDetailsWithUserID userID: String,
+              completion: @escaping ((_ success: Bool, _ message: String?)->())){
         
         requestManager.perform(requestWithURLString: requestCreator.getURLString(forRequestType: .userDetailsFromUserID, withID: userID)) { [weak self] (success, data) in
             
             if success {
                 
-                guard let userData = data as? [String:AnyObject] else { return }
+                guard let userData = data as? [String:AnyObject] else { completion(false, "something went wrong"); return  }
                 
                 if userData["stat"] as? String != "fail" {
                     
@@ -62,7 +60,7 @@ final class RequestClient {
                     let allUserPhotos = userData.value(for: "photos", "photo") as! [[String:AnyObject]]
                     
                     if allUserPhotos.count == 0 {
-                        self?.failed(withMessage: "No Public Photos")
+                        completion(false, "User has no Public Photos")
                     }
                     
                     for photo in allUserPhotos {
@@ -72,29 +70,40 @@ final class RequestClient {
                         self?.user.photos.append(photo)
                     }
                     
-                    self?.delegate?.loaded()
+                    completion(true,nil)
                     
                 } else {
-                    
-                    self?.failed(withMessage: userData["message"] as! String)
+                    completion(false, userData["message"] as? String)
                 }
+            
+            } else {
+                completion(false, data as? String)
             }
         }
     }
     
-    //v2
-    func load(photoDetailsForPhoto photo: Photo) {
+    func load(photoDetailsForPhoto photo: Photo,
+              completion: @escaping ((_ success: Bool, _ message: String?)->())) {
         
-        requestManager.perform(requestWithURLString: requestCreator.getURLString(forRequestType: .photoDetails, withID: photo.photoID)) { [weak self] (success, data) in
+        requestManager.perform(requestWithURLString: requestCreator.getURLString(forRequestType: .photoDetails, withID: photo.photoID)) { (success, data) in
             
-            photo.fill(withDetails: data as! [String : AnyObject])
-            self?.delegate?.loaded()
+            guard let userData = data as? [String:AnyObject] else { completion(false, "something went wrong"); return }
+            
+            if success {
+                
+                photo.fill(withDetails: data as! [String : AnyObject])
+                completion(true, nil)
+                
+            } else {
+                completion(false, userData["message"] as? String)
+            }
+            
             
         }
     }
     
-    //v1
-    func load(imageSizesForID imageID: String, completion: @escaping ((UIImage?, String) -> ())) {
+    func load(imageSizesForID imageID: String,
+              completion: @escaping ((UIImage?, String) -> ())) {
         
         requestManager.perform(requestWithURLString: requestCreator.getURLString(forRequestType: .photoSizes, withID: imageID)) { [weak self] (success, data) in
             
@@ -111,13 +120,10 @@ final class RequestClient {
         }
     }
 
-    func failed(withMessage message: String) {
-        self.delegate?.failed(withMessage: message)
-    }
 }
 
 final class RequestCreator {
-
+    
     enum RequestType {
         case photoDetails
         case userIDFromName
@@ -155,8 +161,5 @@ final class RequestCreator {
         }
         
         return baseHead + method + apiKey + idType + id + baseTail
-        
     }
-    
-    
 }

@@ -1,5 +1,5 @@
 //
-//  UIImageExtensions.swift
+//  UIImageViewExtensions.swift
 //  FlickrTest
 //
 //  Created by Flávio Silvério on 08/03/17.
@@ -17,10 +17,6 @@ extension UIImageView {
             
             self.image = UIImage(named:"placeholder")
             self.tag = position
-            
-            if item.photoID == "" {
-            
-            }
             
             RequestClient.sharedInstance.load(imageSizesForID: item.photoID, completion: {
                 [weak self] (image : UIImage?, imageID : String)  in
